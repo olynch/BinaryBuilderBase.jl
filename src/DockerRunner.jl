@@ -116,7 +116,7 @@ function DockerRunner(workspace_root::String;
     import_docker_image(shards[1], workspace_root; verbose=verbose)
 
     # Construct docker command
-    docker_cmd = `docker run --rm --privileged `#--cap-add SYS_ADMIN`
+    docker_cmd = `docker run --rm --privileged --user $(getuid):$(getgid)`#--cap-add SYS_ADMIN`
 
     if cwd != nothing
         docker_cmd = `$docker_cmd -w /$(abspath(cwd))`
@@ -153,14 +153,14 @@ have to `chown -R \$(id -u):\$(id -g) \$prefix`, which really sucks, but is
 still better than nothing.  This is why we prefer the UserNSRunner on Linux.
 """
 function chown_cleanup(dr::DockerRunner; verbose::Bool = false)
-    if !Sys.islinux()
-        return
-    end
+    # if !Sys.islinux()
+    #     return
+    # end
 
-    if verbose
-        @info("chown'ing prefix back to us...")
-    end
-    run(`$(sudo_cmd()) chown $(getuid()):$(getgid()) -R $(dr.workspace_root)`)
+    # if verbose
+    #     @info("chown'ing prefix back to us...")
+    # end
+    # run(`$(sudo_cmd()) chown $(getuid()):$(getgid()) -R $(dr.workspace_root)`)
 end
 
 function Base.run(dr::DockerRunner, cmd, logger::IO=stdout; verbose::Bool=false, tee_stream=stdout)
